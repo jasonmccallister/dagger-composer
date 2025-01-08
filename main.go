@@ -18,25 +18,48 @@ import (
 	"context"
 	"dagger/dagger-composer/internal/dagger"
 	"errors"
+	"fmt"
 )
 
-type Composer struct{}
+type Composer struct {
+	Version string
+	Dir     *dagger.Directory
+}
+
+func New(
+	// +optional
+	// +default="latest"
+	version string,
+	// +optional
+	dir *dagger.Directory,
+) *Composer {
+	if dir == nil {
+		// get the current working directory
+		dir = dag.Directory().Directory(".")
+	}
+
+	return &Composer{
+		Version: version,
+		Dir:     dir,
+	}
+}
 
 // Takes a directory and installs composer dependencies.
-func (m *Composer) Install(ctx context.Context, dir *dagger.Directory) (*dagger.Directory, error) {
+func (m *Composer) Install(ctx context.Context) (*dagger.Directory, error) {
 	// make sure there is a composer.json file
-	if !exists(ctx, dir, "composer.json") {
+	if !exists(ctx, m.Dir, "composer.json") {
 		return nil, errors.New("missing composer.json file in path")
 	}
 
 	// if there is no composer.lock, log it but continue
-	if !exists(ctx, dir, "composer.lock") {
+	if !exists(ctx, m.Dir, "composer.lock") {
 		// TODO(jasonmccallister) log to stdout in the dagger way
+		fmt.Println("composer.lock file not found in path")
 	}
 
 	return dag.Container().
-		From("composer:latest").
-		WithMountedDirectory("/app", dir).
+		From("composer:"+m.Version).
+		WithMountedDirectory("/app", m.Dir).
 		WithWorkdir("/app").
 		WithExec([]string{"composer", "install", "--prefer-dist", "--optimize-autoloader", "--ignore-platform-reqs"}).
 		Directory("/app/vendor"), nil
