@@ -31,13 +31,9 @@ func New(
 	// +default="latest"
 	version string,
 	// +optional
+	// +defaultPath="."
 	dir *dagger.Directory,
 ) *Composer {
-	if dir == nil {
-		// get the current working directory
-		dir = dag.Directory().Directory(".")
-	}
-
 	return &Composer{
 		Version: version,
 		Dir:     dir,
