@@ -34,6 +34,7 @@ func New(
 	// +defaultPath="."
 	dir *dagger.Directory,
 ) *Composer {
+	fmt.Println("Composer version:", version)
 	return &Composer{
 		Version: version,
 		Dir:     dir,
