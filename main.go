@@ -33,9 +33,11 @@ func (m *Composer) Install(
 	ctx context.Context,
 	// +optional
 	// +defaultPath="."
+	// The directory that contains the composer.json/composer.lock files.
 	dir *dagger.Directory,
 	// +optional
 	// +default=["--prefer-dist", "--optimize-autoloader", "--ignore-platform-reqs"]
+	// Additional arguments to pass to the composer install command.
 	args []string) (*dagger.Directory, error) {
 	// make sure there is a composer.json file
 	if !exists(ctx, dir, "composer.json") {
