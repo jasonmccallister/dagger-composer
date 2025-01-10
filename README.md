@@ -13,7 +13,7 @@ dagger call -m github.com/jasonmccallister/dagger-composer install
 To provide a specific directory (default is the current directory) that contains the `composer.lock` and `composer.json` files:
 
 ```
-dagger call -m github.com/jasonmccallister/dagger-composer --dir ./path/to/directory install
+dagger call -m github.com/jasonmccallister/dagger-composer install --dir ./path/to/directory
 ```
 
 To use a specific version of composer (default is `latest`) use the `--version` flag.
