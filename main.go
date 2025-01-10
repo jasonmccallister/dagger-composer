@@ -20,6 +20,7 @@ type Composer struct {
 func New(
 	// +optional
 	// +default="latest"
+	// The version of the composer image to use.
 	version string,
 ) *Composer {
 	return &Composer{
