@@ -16,6 +16,9 @@ import (
 type Composer struct {
 	Version string            // +private
 	Source  *dagger.Directory // +private
+
+	CacheName   string // +private
+	EnableCache bool   // +private
 }
 
 func New(
@@ -27,10 +30,20 @@ func New(
 	// +defaultPath="."
 	// The directory that contains the composer.json/composer.lock files.
 	source *dagger.Directory,
+	// Enable or disable the composer cache.
+	// +optional
+	// +default=true
+	enableCache bool,
+	// The name to use for the cache volume
+	// +optional
+	// +default="composer"
+	cacheName string,
 ) *Composer {
 	return &Composer{
-		Version: version,
-		Source:  source,
+		Version:     version,
+		Source:      source,
+		CacheName:   cacheName,
+		EnableCache: enableCache,
 	}
 }
 
@@ -52,14 +65,22 @@ func (m *Composer) Install(
 		fmt.Println("composer.lock file not found in path")
 	}
 
-	exec := append([]string{"composer", "install"}, args...)
-
-	return dag.Container().
+	ctr := dag.Container().
 		From("composer:"+m.Version).
 		WithMountedDirectory("/app", m.Source).
 		WithWorkdir("/app").
 		WithExec([]string{"mkdir", "/composer"}).
-		WithEnvVariable("COMPOSER_HOME", "/composer").
+		WithEnvVariable("COMPOSER_HOME", "/composer")
+
+	if m.EnableCache {
+		ctr = ctr.WithMountedCache("/composer",
+			dag.CacheVolume(m.CacheName),
+		)
+	}
+
+	exec := append([]string{"composer", "install"}, args...)
+
+	return ctr.
 		WithExec(exec).
 		Directory("/app/vendor"), nil
 }
