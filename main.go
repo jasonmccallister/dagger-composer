@@ -14,7 +14,8 @@ import (
 )
 
 type Composer struct {
-	Version string
+	Version string            // +private
+	Source  *dagger.Directory // +private
 }
 
 func New(
@@ -22,9 +23,14 @@ func New(
 	// +default="latest"
 	// The version of the composer image to use.
 	version string,
+	// +optional
+	// +defaultPath="."
+	// The directory that contains the composer.json/composer.lock files.
+	source *dagger.Directory,
 ) *Composer {
 	return &Composer{
 		Version: version,
+		Source:  source,
 	}
 }
 
@@ -32,20 +38,16 @@ func New(
 func (m *Composer) Install(
 	ctx context.Context,
 	// +optional
-	// +defaultPath="."
-	// The directory that contains the composer.json/composer.lock files.
-	dir *dagger.Directory,
-	// +optional
 	// +default=["--prefer-dist", "--optimize-autoloader", "--ignore-platform-reqs"]
 	// Additional arguments to pass to the composer install command.
 	args []string) (*dagger.Directory, error) {
 	// make sure there is a composer.json file
-	if !exists(ctx, dir, "composer.json") {
+	if !exists(ctx, m.Source, "composer.json") {
 		return nil, errors.New("missing composer.json file in path")
 	}
 
 	// if there is no composer.lock, log it but continue
-	if !exists(ctx, dir, "composer.lock") {
+	if !exists(ctx, m.Source, "composer.lock") {
 		// TODO(jasonmccallister) log to stdout in the dagger way
 		fmt.Println("composer.lock file not found in path")
 	}
@@ -54,7 +56,7 @@ func (m *Composer) Install(
 
 	return dag.Container().
 		From("composer:"+m.Version).
-		WithMountedDirectory("/app", dir).
+		WithMountedDirectory("/app", m.Source).
 		WithWorkdir("/app").
 		WithExec([]string{"mkdir", "/composer"}).
 		WithEnvVariable("COMPOSER_HOME", "/composer").
