@@ -56,6 +56,8 @@ func (m *Composer) Install(
 		From("composer:"+m.Version).
 		WithMountedDirectory("/app", dir).
 		WithWorkdir("/app").
+		WithExec([]string{"mkdir", "/composer"}).
+		WithEnvVariable("COMPOSER_HOME", "/composer").
 		WithExec(exec).
 		Directory("/app/vendor"), nil
 }

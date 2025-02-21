@@ -1,6 +1,7 @@
 {
   "name": "composer",
-  "engineVersion": "v0.15.1",
-  "sdk": "go",
-  "source": "."
+  "engineVersion": "v0.16.1",
+  "sdk": {
+    "source": "go"
+  }
 }
